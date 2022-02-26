@@ -32,3 +32,10 @@ export const mainStyle = style({
     columnGap: '3rem',
     rowGap: '3rem',
 });
+
+export const noResultStyle = style({
+    gridColumn: '1 / span 3',
+    margin: 'auto',
+    fontSize: '2rem',
+    fontWeight: 'bold',
+});

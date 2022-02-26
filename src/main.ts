@@ -1,9 +1,16 @@
 import Icon from '../assets/images/logo.png';
-import ExpendableSearchListBox from './components/ExpendableSearchListBox';
 import LogoTitle from './components/LogoTitle';
+import ExpendableSearchListBox from './components/ExpendableSearchListBox';
 import Pins from './components/Pins';
 import SearchBox from './components/SearchBox';
-import { appStyle, expendableSearchListBoxGroupStyle, headerStyle, mainStyle, pinsGroupStyle } from './main.css';
+import {
+    appStyle,
+    expendableSearchListBoxGroupStyle,
+    headerStyle,
+    mainStyle,
+    noResultStyle,
+    pinsGroupStyle,
+} from './main.css';
 
 import { ETagType, IPin, IRecipe, ISearch, ITags } from './data/Interface';
 import dataRaw from './data/sample.json';
@@ -29,16 +36,9 @@ const generatePins = (pins: IPin[], onClick?: (v: IPin) => void): DocumentFragme
     });
     return fragment;
 };
-
-/**
- * dfdsdfdddf
- * @param data
- * @param onItemClick
- * @returns
- */
 const generateExpendableSearchListBox = (data: ITags, onItemClick?: (e: IPin) => void): DocumentFragment => {
     const fragment = document.createDocumentFragment();
-    fragment.appendChild(
+    fragment.append(
         ExpendableSearchListBox({
             text: 'Ingredients',
             placeholder: 'Rechercher un ingrédient',
@@ -47,8 +47,6 @@ const generateExpendableSearchListBox = (data: ITags, onItemClick?: (e: IPin) =>
             listbox: data.ingredients.slice(0, 30),
             onListboxClick: onItemClick,
         }),
-    );
-    fragment.appendChild(
         ExpendableSearchListBox({
             text: 'Appareils',
             placeholder: 'Rechercher un appareil',
@@ -57,8 +55,6 @@ const generateExpendableSearchListBox = (data: ITags, onItemClick?: (e: IPin) =>
             listbox: data.appliance.slice(0, 30),
             onListboxClick: onItemClick,
         }),
-    );
-    fragment.appendChild(
         ExpendableSearchListBox({
             text: 'Ustensiles',
             placeholder: 'Rechercher un ustensile',
@@ -79,6 +75,7 @@ export const main = (): void => {
 
     const header = document.createElement('header');
     header.classList.add(headerStyle);
+    console.log(headerStyle);
     const loginTitle = LogoTitle({ src: Icon });
     const searchBox = SearchBox({
         placeholder: 'Rechercher une recette',
@@ -121,6 +118,12 @@ export const main = (): void => {
                 }),
             );
             main.replaceChildren(generateMediaCard(globalState.recipes));
+        } else if (e.detail.searchResult.length == 0) {
+            const noResult = document.createElement('div');
+            noResult.classList.add(noResultStyle);
+            noResult.innerText =
+                'Aucune recette ne correspond à votre critère… vous pouvez chercher « tarte aux pommes », « poisson », etc';
+            main.replaceChildren(noResult);
         } else {
             expendableSearchListBoxGroup.replaceChildren(
                 generateExpendableSearchListBox(e.detail.searchResultTags, (e) => {
@@ -131,8 +134,8 @@ export const main = (): void => {
         }
     });
 
-    document.querySelector('#app').appendChild(header);
-    document.querySelector('#app').appendChild(main);
-    document.querySelector('#app').className = appStyle;
+    const app = document.querySelector<HTMLBodyElement>('#app');
+    app?.append(header, main);
+    app?.classList.add(appStyle);
 };
 main();

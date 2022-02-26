@@ -7,7 +7,7 @@ import {
     listboxStyle,
     listboxUlStyle,
     vars,
-} from './style.css';
+} from './styles.css';
 import { setElementVars } from '@vanilla-extract/dynamic';
 import { icon } from '@fortawesome/fontawesome-svg-core';
 import { ETagType, IPin } from '../../data/Interface';
@@ -74,6 +74,13 @@ const ExpendableSearchListBox = (props: IExpendableSearchListBoxProps): HTMLDivE
     setElementVars(container, vars, { color: props?.color || '#3282f7' });
 
     const toggleListbox = (status: boolean, event?: () => void): void => {
+        //Mutual exclusion
+        if (status) {
+            Array.from(container.parentElement.children).forEach((child) => {
+                child.setAttribute('aria-expanded', 'false');
+            });
+        }
+
         container.setAttribute('aria-expanded', status.valueOf().toString());
         uiStatus = status;
         event && event();
@@ -87,11 +94,13 @@ const ExpendableSearchListBox = (props: IExpendableSearchListBoxProps): HTMLDivE
     input.addEventListener('focus', () => {
         if (input.value === props.text) {
             input.value = '';
+            toggleListbox(true, props?.onExpand);
         } else if (input.value.length === 0 && uiStatus) {
             toggleListbox(false, props?.onCollapse);
         }
     });
-    input.addEventListener('blur', () => {
+    input.addEventListener('blur', (e) => {
+        e.preventDefault();
         if (input.value.length === 0) {
             input.value = props.text;
             toggleListbox(false, props?.onCollapse);

@@ -12,6 +12,7 @@ export const containerStyle = style({
     padding: '0.5rem',
 
     display: 'grid',
+
     gridTemplateColumns: 'repeat(12, 1fr)',
     selectors: {
         '&[aria-expanded="true"]': {
@@ -75,4 +76,8 @@ export const listboxLiStyle = style({
     color: '#fff',
     listStyle: 'none',
     fontSize: '1.1rem',
+    ':hover': {
+        textDecoration: 'underline',
+        cursor: 'pointer',
+    },
 });

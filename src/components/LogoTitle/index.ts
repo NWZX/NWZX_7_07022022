@@ -1,4 +1,4 @@
-import { headingStyle, imageStyle } from './style.css';
+import { headingStyle, imageStyle } from './styles.css';
 
 export interface ILogoTitleProps {
     href?: string;
