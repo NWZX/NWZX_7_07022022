@@ -4,9 +4,14 @@ import { IPin } from '../../data/Interface';
 import { setElementVars } from '@vanilla-extract/dynamic';
 
 export interface IPins extends IPin {
-    onClick?: (v: IPin) => void;
+    onClick?: (e: HTMLDivElement, v: IPin) => void;
 }
 
+/**
+ * Pins component
+ * @param props Component props
+ * @returns
+ */
 const Pins = (props: IPins): HTMLDivElement => {
     const faCircle = icon({ prefix: 'far', iconName: 'circle-xmark' }, { classes: iconStyle });
 
@@ -14,16 +19,17 @@ const Pins = (props: IPins): HTMLDivElement => {
     button.classList.add(buttonStyle);
     button.appendChild(faCircle.node[0]);
 
-    const span = document.createElement('span');
-    span.classList.add(textStyle);
-    span.innerText = props.content;
+    const text = document.createElement('span');
+    text.classList.add(textStyle);
+    text.innerText = props.content;
 
     const container = document.createElement('div');
     setElementVars(container, vars, { color: props?.color || '#3282f7' });
-    props?.onClick && button.addEventListener('click', () => props.onClick({ ...props }));
+    props?.onClick && button.addEventListener('click', () => props.onClick(container, { ...props }));
 
     container.classList.add(containerStyle);
-    container.appendChild(span);
+    setTimeout(() => container.setAttribute('data-visible', 'true'), 1);
+    container.appendChild(text);
     container.appendChild(button);
 
     return container;

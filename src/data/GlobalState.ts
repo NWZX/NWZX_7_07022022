@@ -1,28 +1,39 @@
 import { SearchEngine } from '../utils/searchEngine';
-import { IPin, IRecipe, ISearch, ITags } from './Interface';
+import { IPin, IRecipe, ISearch, ICategories, ECategorieType } from './Interface';
 
+/**
+ * Distibute/Manage data in the application
+ */
 export class GlobalState {
     private _recipes: IRecipe[];
-    private _tags: ITags;
+    private _categories: ICategories;
     private _search: ISearch;
     private _pins: IPin[];
 
     constructor(data: IRecipe[]) {
         this._recipes = data;
-        this._tags = this.tagsExtractor(data);
         this._pins = [];
         this._search = {
             search: '',
             searchResult: [],
             searchResultTags: {
                 ingredients: [],
-                appliance: [],
+                appliances: [],
                 ustensils: [],
             },
             reset: true,
         };
+        this._categories = this.categoriesExtractor(data);
     }
 
+    /**
+     * Set the search value and generate the search result
+     * @emits gs_search
+     * @param search Search request text
+     * @param force Force search even if the search text is the same
+     * @param advancedMode Extend the search to the appliance and ustensils
+     * @returns
+     */
     public setSearch = async (search: string, force = false, advancedMode = false): Promise<void> => {
         if (search !== this._search.search || force) {
             if (search.length === 0 && this._pins.length === 0) {
@@ -35,24 +46,27 @@ export class GlobalState {
             const lAdvendedMode = this._pins.length > 0 ? true : advancedMode;
 
             const searchResult = await SearchEngine(this._recipes, searchText, lAdvendedMode);
-            console.log(searchText, lAdvendedMode, searchResult);
             this._search = {
                 search: search,
                 searchResult: searchResult,
-                searchResultTags: this.tagsExtractor(searchResult),
+                searchResultTags: this.categoriesExtractor(searchResult, true),
                 reset: false,
             };
             document.dispatchEvent(new CustomEvent('gs_search', { detail: this._search }));
         }
     };
 
+    /**
+     * Reset the search value
+     * @emits gs_search
+     */
     public resetSearch = (): void => {
         this._search = {
             search: '',
             searchResult: [],
             searchResultTags: {
                 ingredients: [],
-                appliance: [],
+                appliances: [],
                 ustensils: [],
             },
             reset: true,
@@ -60,28 +74,45 @@ export class GlobalState {
         document.dispatchEvent(new CustomEvent('gs_search', { detail: this._search }));
     };
 
-    public tagsExtractor = (recipes: IRecipe[]): ITags => {
-        const tags: ITags = {
+    /**
+     * Extract the categories from the recipes
+     * @param recipes Array of recipes
+     * @param excludePins Exclude the pins name if already in the `_pins` array
+     * @returns
+     */
+    public categoriesExtractor = (recipes: IRecipe[], excludePins = false): ICategories => {
+        const tags: ICategories = {
             ingredients: [],
-            appliance: [],
+            appliances: [],
             ustensils: [],
         };
         recipes.forEach((recipe) => {
             recipe.ingredients?.forEach((ingredient) => {
                 const lowerCaseIngredient = ingredient.ingredient.toLowerCase();
-                if (!tags.ingredients.includes(lowerCaseIngredient)) {
+                const alreadyExistIn = tags.ingredients.includes(lowerCaseIngredient);
+                const notInPins = excludePins && !this._pins.some((pin) => pin.content === lowerCaseIngredient);
+
+                if (!alreadyExistIn && (!excludePins || notInPins)) {
                     tags.ingredients.push(lowerCaseIngredient);
                 }
             });
             recipe.ustensils?.forEach((ustensil) => {
                 const lowerCaseUstensil = ustensil.toLocaleLowerCase();
-                if (!tags.ustensils.includes(lowerCaseUstensil)) {
+                const alreadyExistIn = tags.ustensils.includes(lowerCaseUstensil);
+                const notInPins = excludePins && !this._pins.some((pin) => pin.content === lowerCaseUstensil);
+
+                if (!alreadyExistIn && (!excludePins || notInPins)) {
                     tags.ustensils.push(lowerCaseUstensil);
                 }
             });
-            recipe.appliance &&
-                !tags.appliance.includes(recipe.appliance.toLowerCase()) &&
-                tags.appliance.push(recipe.appliance.toLowerCase());
+            if (recipe.appliance) {
+                const lowerCaseAppliance = recipe.appliance.toLowerCase();
+                const alreadyExistIn = tags.appliances.includes(lowerCaseAppliance);
+                const notInPins = excludePins && !this._pins.some((pin) => pin.content === lowerCaseAppliance);
+                if (!alreadyExistIn && (!excludePins || notInPins)) {
+                    tags.appliances.push(lowerCaseAppliance);
+                }
+            }
         });
         return tags;
     };
@@ -89,8 +120,8 @@ export class GlobalState {
     public get recipes(): IRecipe[] {
         return this._recipes;
     }
-    public get tags(): ITags {
-        return this._tags;
+    public get tags(): ICategories {
+        return this._categories;
     }
     public get pins(): IPin[] {
         return this._pins;
@@ -99,24 +130,41 @@ export class GlobalState {
         return this._search;
     }
 
-    public getTags = (type: 'appliance' | 'ustensils' | 'ingredients'): string[] => {
-        return this._tags[type];
+    /**
+     * Get the category array of pins names
+     * @param type Name of the category
+     * @returns
+     */
+    public getCategorie = (type: ECategorieType): string[] => {
+        return this._categories[type];
     };
 
-    public addPins = (recipeId: IPin): void => {
-        if (!this._pins.find((pin) => pin.content === recipeId.content)) {
-            this._pins.push(recipeId);
+    /**
+     * Add a pin to the pins array
+     * @param item Pin object
+     * @emits gs_pins_add
+     * @emits gs_search
+     */
+    public addPins = (item: IPin): void => {
+        if (!this._pins.find((pin) => pin.content === item.content)) {
+            this._pins.push(item);
             this.setSearch(this._search.search, true, true);
-            document.dispatchEvent(new CustomEvent('gs_pins', { detail: this._pins }));
+            document.dispatchEvent(new CustomEvent('gs_pins_add', { detail: item }));
         }
     };
 
-    public removePins = (recipeId: IPin): void => {
-        const index = this._pins.findIndex((pin) => pin.content === recipeId.content);
+    /**
+     * Remove a pin from the pins array
+     * @param item Pin object
+     * @emits gs_pins_remove
+     * @emits gs_search
+     */
+    public removePins = (item: IPin): void => {
+        const index = this._pins.findIndex((pin) => pin.content === item.content);
         if (index > -1) {
             this._pins.splice(index, 1);
             this.setSearch(this._search.search, true, true);
-            document.dispatchEvent(new CustomEvent('gs_pins', { detail: this._pins }));
+            document.dispatchEvent(new CustomEvent('gs_pins_remove', { detail: item }));
         }
     };
 }

@@ -1,6 +1,6 @@
 import { IRecipe } from '../data/Interface';
 
-const OptimizedEvery = <T>(data: T[], predicate: (item: T) => boolean): boolean => {
+const AlternativeEvery = <T>(data: T[], predicate: (item: T) => boolean): boolean => {
     let result = true;
     for (let i = 0; i < data.length; i++) {
         if (!predicate(data[i])) {
@@ -12,20 +12,20 @@ const OptimizedEvery = <T>(data: T[], predicate: (item: T) => boolean): boolean 
 };
 
 /**
- * Optimized version of SearchEngine (beacuse it's use break to escape from loop)
+ * Alternative version of SearchEngine (beacuse it's use break to escape from loop)
  * @param data Array of IRecipe
  * @param search Researched strings
  * @returns Array of IRecipe which match the researched strings
  */
-export const OptimizedSearchEngine = async (data: IRecipe[], search: string): Promise<IRecipe[]> => {
+export const AlternativeSearchEngine = async (data: IRecipe[], search: string): Promise<IRecipe[]> => {
     const searchArray = search.toLowerCase().split(' ');
     const result: IRecipe[] = [];
     for (const recipe of data) {
-        const isValid = OptimizedEvery(searchArray, (searchWord) => {
+        const isValid = AlternativeEvery(searchArray, (searchWord) => {
             return !(
                 recipe.name.toLowerCase().indexOf(searchWord) === -1 &&
                 recipe.description.toLowerCase().indexOf(searchWord) === -1 &&
-                OptimizedEvery(
+                AlternativeEvery(
                     recipe.ingredients,
                     (ingredient) => ingredient.ingredient.toLowerCase().indexOf(searchWord) === -1,
                 )

@@ -1,8 +1,12 @@
+//Dynamic import for components
+const Dynamic_ExpendableSearchListBox = { default: () => import('./components/ExpendableSearchListBox') };
+const Dynamic_LogoTitle = { default: () => import('./components/LogoTitle') };
+const Dynamic_Pins = { default: () => import('./components/Pins') };
+const Dynamic_SearchBox = { default: () => import('./components/SearchBox') };
+const Dynamic_RecipeCard = { default: () => import('./components/RecipeCard') };
+
+// Style & Ressource imports
 import Icon from '../assets/images/logo.png';
-import LogoTitle from './components/LogoTitle';
-import ExpendableSearchListBox from './components/ExpendableSearchListBox';
-import Pins from './components/Pins';
-import SearchBox from './components/SearchBox';
 import {
     appStyle,
     expendableSearchListBoxGroupStyle,
@@ -12,71 +16,118 @@ import {
     pinsGroupStyle,
 } from './main.css';
 
-import { ETagType, IPin, IRecipe, ISearch, ITags } from './data/Interface';
+// Data fetching
 import dataRaw from './data/sample.json';
-import RecipeCard from './components/RecipeCard';
+import { ECategorieType, IPin, IRecipe, ISearch, ICategories } from './data/Interface';
 import { GlobalState } from './data/GlobalState';
 
-const generateMediaCard = (data: IRecipe[]): DocumentFragment => {
+/**
+ * Transform `IRecipe[]` data to HTML `DocumentFragment`
+ * @param data Array of recipes
+ * @returns
+ */
+const generateMediaCard = async (data: IRecipe[]): Promise<DocumentFragment> => {
+    const RecipeCard = await Dynamic_RecipeCard.default();
+
+    // Lazy load the mediaCard
+    const observer = new IntersectionObserver(
+        async (entries, observer) => {
+            entries.forEach((entry) => {
+                if (!entry.isIntersecting) return;
+                const mediaCard = entry.target;
+                const i = Number.parseInt(mediaCard.getAttribute('data-id')) as number;
+                mediaCard.replaceWith(RecipeCard.default({ data: data[i] }));
+                observer.unobserve(mediaCard);
+            });
+        },
+        {
+            threshold: [0.2],
+        },
+    );
+
     const fragment = document.createDocumentFragment();
-    data?.forEach((recipe: IRecipe) => {
-        fragment.appendChild(RecipeCard({ data: recipe }));
+    data?.forEach((_, i) => {
+        const card = RecipeCard.DummyRecipeCard({ id: i });
+        observer.observe(card);
+        fragment.appendChild(card);
     });
     return fragment;
 };
-const generatePins = (pins: IPin[], onClick?: (v: IPin) => void): DocumentFragment => {
+
+/**
+ * Transform `IPin` data to HTML `DocumentFragment`
+ * @param pin Pins Obejct
+ * @param onClick Event to call when a pin is clicked
+ * @returns
+ */
+const generatePins = async (pin: IPin, onClick?: (e: HTMLDivElement, v: IPin) => void): Promise<DocumentFragment> => {
+    const Pins = (await Dynamic_Pins.default()).default;
     const fragment = document.createDocumentFragment();
-    pins?.forEach((pin) => {
-        fragment.appendChild(
-            Pins({
-                ...pin,
-                onClick: onClick,
-            }),
-        );
-    });
+    fragment.appendChild(
+        Pins({
+            ...pin,
+            onClick: onClick,
+        }),
+    );
     return fragment;
 };
-const generateExpendableSearchListBox = (data: ITags, onItemClick?: (e: IPin) => void): DocumentFragment => {
+
+/**
+ * Transform `ICategories` data to HTML `DocumentFragment`
+ * @param data Categories object
+ * @param onItemClick Event to call when a tag is clicked
+ * @returns
+ */
+const generateExpendableSearchListBox = async (
+    data: ICategories,
+    onItemClick?: (e: IPin) => void,
+): Promise<DocumentFragment> => {
+    const maxItem = 30;
+    const ExpendableSearchListBox = (await Dynamic_ExpendableSearchListBox.default()).default;
     const fragment = document.createDocumentFragment();
     fragment.append(
         ExpendableSearchListBox({
             text: 'Ingredients',
             placeholder: 'Rechercher un ingrédient',
-            type: ETagType.INGREDIENT,
+            type: ECategorieType.INGREDIENT,
             color: '#3282f7',
-            listbox: data.ingredients.slice(0, 30),
+            listbox: data.ingredients.slice(0, maxItem),
             onListboxClick: onItemClick,
         }),
         ExpendableSearchListBox({
             text: 'Appareils',
             placeholder: 'Rechercher un appareil',
-            type: ETagType.APPLIANCE,
+            type: ECategorieType.APPLIANCE,
             color: '#68d9a4',
-            listbox: data.appliance.slice(0, 30),
+            listbox: data.appliances.slice(0, maxItem),
             onListboxClick: onItemClick,
         }),
         ExpendableSearchListBox({
             text: 'Ustensiles',
             placeholder: 'Rechercher un ustensile',
-            type: ETagType.USTENSIL,
+            type: ECategorieType.USTENSIL,
             color: '#ed6454',
-            listbox: data.ustensils.slice(0, 30),
+            listbox: data.ustensils.slice(0, maxItem),
             onListboxClick: onItemClick,
         }),
     );
     return fragment;
 };
 
-export const main = (): void => {
+/**
+ * Generate index page
+ */
+export const main = async (): Promise<void> => {
     const data: IRecipe[] = dataRaw as IRecipe[];
     const globalState = new GlobalState(data);
 
-    //Header
-
+    //#region Header
     const header = document.createElement('header');
     header.classList.add(headerStyle);
-    console.log(headerStyle);
-    const loginTitle = LogoTitle({ src: Icon });
+
+    const LogoTitle = (await Dynamic_LogoTitle.default()).default;
+    const loginTitle = LogoTitle({ src: Icon, alt: 'Les petits plats', href: '/' });
+    const SearchBox = (await Dynamic_SearchBox.default()).default;
     const searchBox = SearchBox({
         placeholder: 'Rechercher une recette',
         startSearchAt: 3,
@@ -89,10 +140,20 @@ export const main = (): void => {
     });
     const pinsGroup = document.createElement('div');
     pinsGroup.classList.add(pinsGroupStyle);
-    document.addEventListener('gs_pins', (e: Event & { detail: IPin[] }) => {
-        pinsGroup.replaceChildren(
-            generatePins(e.detail, (v) => {
-                globalState.removePins(v);
+    pinsGroup.setAttribute('data-visible', 'false');
+    document.addEventListener('gs_pins_add', async (e: Event & { detail: IPin }) => {
+        pinsGroup.setAttribute('data-visible', 'true');
+        pinsGroup.appendChild(
+            await generatePins(e.detail, (e, v) => {
+                e.setAttribute('data-visible', 'false');
+                setTimeout(() => {
+                    globalState.removePins(v);
+                    e.remove();
+
+                    if (globalState.pins.length === 0) {
+                        pinsGroup.setAttribute('data-visible', 'false');
+                    }
+                }, 250);
             }),
         );
     });
@@ -100,24 +161,26 @@ export const main = (): void => {
     const expendableSearchListBoxGroup = document.createElement('div');
     expendableSearchListBoxGroup.classList.add(expendableSearchListBoxGroupStyle);
     expendableSearchListBoxGroup.appendChild(
-        generateExpendableSearchListBox(globalState.tags, (e) => {
+        await generateExpendableSearchListBox(globalState.tags, (e) => {
             globalState.addPins(e);
         }),
     );
 
     header.append(loginTitle, searchBox, pinsGroup, expendableSearchListBoxGroup);
+    //#endregion
 
+    //#region Main
     const main = document.createElement('main');
     main.classList.add(mainStyle);
-    main.appendChild(generateMediaCard(data));
-    document.addEventListener('gs_search', (e: Event & { detail: ISearch }) => {
+    main.appendChild(await generateMediaCard(data));
+    document.addEventListener('gs_search', async (e: Event & { detail: ISearch }) => {
         if (e.detail.reset) {
             expendableSearchListBoxGroup.replaceChildren(
-                generateExpendableSearchListBox(globalState.tags, (e) => {
+                await generateExpendableSearchListBox(globalState.tags, (e) => {
                     globalState.addPins(e);
                 }),
             );
-            main.replaceChildren(generateMediaCard(globalState.recipes));
+            main.replaceChildren(await generateMediaCard(globalState.recipes));
         } else if (e.detail.searchResult.length == 0) {
             const noResult = document.createElement('div');
             noResult.classList.add(noResultStyle);
@@ -126,16 +189,18 @@ export const main = (): void => {
             main.replaceChildren(noResult);
         } else {
             expendableSearchListBoxGroup.replaceChildren(
-                generateExpendableSearchListBox(e.detail.searchResultTags, (e) => {
+                await generateExpendableSearchListBox(e.detail.searchResultTags, (e) => {
                     globalState.addPins(e);
                 }),
             );
-            main.replaceChildren(generateMediaCard(e.detail.searchResult));
+            main.replaceChildren(await generateMediaCard(e.detail.searchResult));
         }
     });
+    //#endregion
 
     const app = document.querySelector<HTMLBodyElement>('#app');
-    app?.append(header, main);
     app?.classList.add(appStyle);
+    app?.append(header);
+    app?.append(main);
 };
 main();

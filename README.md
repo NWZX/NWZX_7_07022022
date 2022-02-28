@@ -1,6 +1,6 @@
-# 🚀 Welcome to your new awesome project!
+# Small dishes
 
-This project has been created using **webpack-cli**, you can now run
+This project is base on Vite, Typescript, Vanilla Extract and Font Awesome
 
 ```
 npm i
@@ -10,4 +10,4 @@ npm i
 npm run dev
 ```
 
-to bundle your application
+🚀

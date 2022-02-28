@@ -1,16 +1,32 @@
 import { style } from '@vanilla-extract/css';
 
+export const dummyContainerStyle = style({
+    width: '100%',
+    height: 'calc(200px + 6rem + 4rem + 1rem)',
+});
 export const containerStyle = style({
     borderRadius: '8px',
     backgroundColor: '#e7e7e7',
     color: '#000',
     display: 'flex',
     flexDirection: 'column',
+
+    opacity: 0,
+    visibility: 'hidden',
+
+    transition: 'opacity 0.2s linear',
+    selectors: {
+        '&[data-visible="true"]': {
+            opacity: 1,
+            visibility: 'visible',
+        },
+    },
 });
 
 export const imgStyle = style({
-    borderRadius: '8px 8px 0 0',
+    width: '100%',
     height: '200px',
+    borderRadius: '8px 8px 0 0',
     backgroundColor: '#c7bebe',
 });
 
@@ -40,6 +56,8 @@ export const footStyle = style({
 });
 
 export const recipeStyle = style({
+    padding: '0',
+    margin: '0',
     fontSize: '0.9rem',
 });
 export const ingredientStyle = style({

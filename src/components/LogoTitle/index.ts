@@ -8,10 +8,16 @@ export interface ILogoTitleProps {
     onLoadError?: () => void;
 }
 
+/**
+ * LogoTitle component
+ * @param props Component props
+ * @returns
+ */
 const LogoTitle = (props?: ILogoTitleProps): HTMLHeadingElement => {
     const img = document.createElement('img');
+    img.setAttribute('width', '200');
+    img.setAttribute('height', '150');
     img.classList.add(imageStyle);
-    img.setAttribute('loading', 'lazy');
     props?.src && img.setAttribute('src', props.src);
     props?.alt && img.setAttribute('alt', props.alt);
     props?.onLoadError && img.addEventListener('error', props.onLoadError);

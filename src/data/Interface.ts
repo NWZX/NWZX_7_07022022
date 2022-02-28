@@ -1,3 +1,6 @@
+/**
+ * Object representation of a recipe
+ */
 export interface IRecipe {
     id: number;
     name: string;
@@ -9,32 +12,48 @@ export interface IRecipe {
     ustensils: string[];
 }
 
+/**
+ * Object representation of a ingredient
+ */
 export interface IIngredient {
     ingredient: string;
     quantity?: number;
     unit?: string;
 }
 
-export enum ETagType {
-    INGREDIENT = 'ingredient',
-    APPLIANCE = 'appliance',
-    USTENSIL = 'ustensil',
-}
-export interface ITags {
-    ingredients: string[];
-    ustensils: string[];
-    appliance: string[];
+/**
+ * Enumuration of the different categories
+ */
+export enum ECategorieType {
+    INGREDIENT = 'ingredients',
+    APPLIANCE = 'appliances',
+    USTENSIL = 'ustensils',
 }
 
+/**
+ * Object representation of a category
+ */
+export interface ICategories {
+    ingredients: string[];
+    ustensils: string[];
+    appliances: string[];
+}
+
+/**
+ * Object representation of a search
+ */
 export interface ISearch {
     search: string;
     searchResult: IRecipe[];
-    searchResultTags: ITags;
+    searchResultTags: ICategories;
     reset: boolean;
 }
 
+/**
+ * Object representation of a pin
+ */
 export interface IPin {
     content: string;
     color: string;
-    type: ETagType;
+    type: ECategorieType;
 }

@@ -5,21 +5,40 @@ export const vars = createThemeContract({
 });
 
 export const containerStyle = style({
+    position: 'relative',
     backgroundColor: vars.color,
     borderRadius: '0.25rem',
 
     height: 'fit-content',
-    padding: '0.5rem',
 
-    display: 'grid',
+    display: 'flex',
+    flexDirection: 'column',
 
-    gridTemplateColumns: 'repeat(12, 1fr)',
+    width: '20%',
+    transition: 'all 0.2s linear',
     selectors: {
-        '&[aria-expanded="true"]': {
+        '&[data-expanded="true"]': {
+            width: '40%',
             gridColumn: '3 span',
+            borderRadius: '0.25rem 0.25rem 0 0',
         },
-        '&[aria-expanded="false"]': {
-            gridColumn: '1 span',
+    },
+    '@media': {
+        'screen and (max-width: 425px)': {
+            width: '100%',
+            selectors: {
+                '&[data-expanded="true"]': {
+                    width: '100%',
+                },
+            },
+        },
+        'screen and (min-width: 425px) and (max-width: 1024px)': {
+            width: '100%',
+            selectors: {
+                '&[data-expanded="true"]': {
+                    width: '100%',
+                },
+            },
         },
     },
 });
@@ -38,7 +57,7 @@ export const inputStyle = style({
         opacity: '0.8',
     },
     selectors: {
-        '[aria-expanded="false"] &::placeholder': {
+        '[data-expanded="false"] &::placeholder': {
             opacity: '0',
         },
     },
@@ -46,21 +65,57 @@ export const inputStyle = style({
 export const iconStyle = style({
     fontSize: '1.2rem',
     color: '#fff',
+    transform: 'rotate(0deg)',
+    selectors: {
+        '[data-expanded="true"] button &': {
+            transform: 'rotate(180deg)',
+            transition: 'transform 0.3s ease-in-out',
+        },
+    },
 });
 export const buttonStyle = style({
     backgroundColor: 'transparent',
     border: 'none',
 });
 
+export const topContainerStyle = style({
+    display: 'flex',
+    padding: '0.5rem',
+});
+
 export const listboxStyle = style({
-    gridColumn: '1 / span 12',
+    position: 'absolute',
+    top: '3rem',
+    padding: '0.5rem',
+    borderRadius: '0 0 0.25rem 0.25rem',
+
+    backgroundColor: vars.color,
+
+    display: 'flex',
     flexDirection: 'column',
+    width: 'calc(100% - 1rem)',
+    maxHeight: '20vh',
+    overflowY: 'auto',
+
+    visibility: 'hidden',
+    opacity: '0',
+    transition: 'all 200ms linear',
+    '::-webkit-scrollbar': {
+        width: '5px',
+    },
+    '::-webkit-scrollbar-thumb': {
+        backgroundColor: '#f1f1f1',
+        borderRadius: '5px',
+    },
     selectors: {
-        '[aria-expanded="true"] &': {
-            display: 'flex',
+        '[data-expanded="true"] &': {
+            top: '3.5rem',
+            visibility: 'visible',
+            opacity: '1',
+            zIndex: '1',
         },
-        '[aria-expanded="false"] &': {
-            display: 'none',
+        '[data-expanded="false"] &': {
+            zIndex: '-1',
         },
     },
 });
@@ -79,5 +134,17 @@ export const listboxLiStyle = style({
     ':hover': {
         textDecoration: 'underline',
         cursor: 'pointer',
+    },
+    '@media': {
+        'screen and (max-width: 425px)': {
+            gridColumn: '3 span',
+            textAlign: 'center',
+            fontSize: '1.25rem',
+        },
+        'screen and (min-width: 425px) and (max-width: 1024px)': {
+            gridColumn: '3 span',
+            textAlign: 'center',
+            fontSize: '1.25rem',
+        },
     },
 });
