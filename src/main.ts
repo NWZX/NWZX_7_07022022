@@ -173,15 +173,16 @@ export const main = async (): Promise<void> => {
     const main = document.createElement('main');
     main.classList.add(mainStyle);
     main.appendChild(await generateMediaCard(data));
+    document.addEventListener('gs_search_clear', async () => {
+        expendableSearchListBoxGroup.replaceChildren(
+            await generateExpendableSearchListBox(globalState.tags, (e) => {
+                globalState.addPins(e);
+            }),
+        );
+        main.replaceChildren(await generateMediaCard(globalState.recipes));
+    });
     document.addEventListener('gs_search', async (e: Event & { detail: ISearch }) => {
-        if (e.detail.reset) {
-            expendableSearchListBoxGroup.replaceChildren(
-                await generateExpendableSearchListBox(globalState.tags, (e) => {
-                    globalState.addPins(e);
-                }),
-            );
-            main.replaceChildren(await generateMediaCard(globalState.recipes));
-        } else if (e.detail.searchResult.length == 0) {
+        if (e.detail.searchResult.length == 0) {
             const noResult = document.createElement('div');
             noResult.classList.add(noResultStyle);
             noResult.innerText =

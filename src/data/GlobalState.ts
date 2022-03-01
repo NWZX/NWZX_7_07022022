@@ -1,4 +1,4 @@
-import { SearchEngine } from '../utils/searchEngine';
+import { AlternativeSearchEngine } from '../utils/searchEngine';
 import { IPin, IRecipe, ISearch, ICategories, ECategorieType } from './Interface';
 
 /**
@@ -21,7 +21,6 @@ export class GlobalState {
                 appliances: [],
                 ustensils: [],
             },
-            reset: true,
         };
         this._categories = this.categoriesExtractor(data);
     }
@@ -45,12 +44,11 @@ export class GlobalState {
             const searchText = search.length > 0 ? search + ` ${pinContents}` : pinContents;
             const lAdvendedMode = this._pins.length > 0 ? true : advancedMode;
 
-            const searchResult = await SearchEngine(this._recipes, searchText, lAdvendedMode);
+            const searchResult = await AlternativeSearchEngine(this._recipes, searchText, lAdvendedMode);
             this._search = {
                 search: search,
                 searchResult: searchResult,
                 searchResultTags: this.categoriesExtractor(searchResult, true),
-                reset: false,
             };
             document.dispatchEvent(new CustomEvent('gs_search', { detail: this._search }));
         }
@@ -58,20 +56,21 @@ export class GlobalState {
 
     /**
      * Reset the search value
-     * @emits gs_search
+     * @emits gs_search_clear
      */
     public resetSearch = (): void => {
-        this._search = {
-            search: '',
-            searchResult: [],
-            searchResultTags: {
-                ingredients: [],
-                appliances: [],
-                ustensils: [],
-            },
-            reset: true,
-        };
-        document.dispatchEvent(new CustomEvent('gs_search', { detail: this._search }));
+        if (this._search.search.length > 0 || this.search.searchResult.length > 0) {
+            this._search = {
+                search: '',
+                searchResult: [],
+                searchResultTags: {
+                    ingredients: [],
+                    appliances: [],
+                    ustensils: [],
+                },
+            };
+            document.dispatchEvent(new CustomEvent('gs_search_clear'));
+        }
     };
 
     /**

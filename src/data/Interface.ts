@@ -46,7 +46,6 @@ export interface ISearch {
     search: string;
     searchResult: IRecipe[];
     searchResultTags: ICategories;
-    reset: boolean;
 }
 
 /**
