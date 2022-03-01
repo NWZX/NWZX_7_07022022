@@ -10,7 +10,7 @@ const AlternativeEvery = <T>(data: T[], predicate: (item: T) => boolean): boolea
 };
 
 /**
- * Alternative version of SearchEngine (beacuse it's use break to escape from loop)
+ * Alternative version of SearchEngine
  * @param data Array of IRecipe
  * @param search Researched strings
  * @param advancedMode Expend research to ustensils and appliance
@@ -51,7 +51,7 @@ export const AlternativeSearchEngine = async (
 };
 
 /**
- * Unoptimized/Classic version of SearchEngine
+ * Classic version of SearchEngine
  * @param data Array of IRecipe
  * @param search Researched strings
  * @param advancedMode Expend research to ustensils and appliance
