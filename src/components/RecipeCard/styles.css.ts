@@ -39,9 +39,11 @@ export const headStyle = style({
 });
 export const titleStyle = style({
     width: '90%',
+    fontWeight: '100',
 });
 export const timeStyle = style({
     whiteSpace: 'nowrap',
+    fontSize: '1.5rem',
 });
 export const timeIconStyle = style({
     marginRight: '0.5rem',

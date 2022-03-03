@@ -13,6 +13,7 @@ export const appStyle = style({
     gap: '3rem',
     marginLeft: '5%',
     marginRight: '5%',
+    fontFamily: 'Lato, sans-serif',
 });
 
 export const headerStyle = style({
