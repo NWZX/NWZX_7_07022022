@@ -1,4 +1,4 @@
-import { AlternativeSearchEngine } from '../utils/searchEngine';
+import { SearchEngine } from '../utils/searchEngine';
 import { IPin, IRecipe, ISearch, ICategories, ECategorieType } from './Interface';
 
 /**
@@ -44,7 +44,7 @@ export class GlobalState {
             const searchText = search.length > 0 ? search + ` ${pinContents}` : pinContents;
             const lAdvendedMode = this._pins.length > 0 ? true : advancedMode;
 
-            const searchResult = await AlternativeSearchEngine(this._recipes, searchText, lAdvendedMode);
+            const searchResult = await SearchEngine(this._recipes, searchText, lAdvendedMode);
             this._search = {
                 search: search,
                 searchResult: searchResult,
